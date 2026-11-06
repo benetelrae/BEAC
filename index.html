@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boston Electronic Athletic Club</title>
+<meta name="description" content="Boston Electronic Athletic Club — Golden Tee, CS2, Sim Racing, SSM2. Coming soon.">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Michroma&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --fg: #f2f2f2;
+    --dim: #8a8a8a;
+    --accent: #00e5ff;   /* cyan */
+    --accent2: #ff2a55;  /* red */
+    --dark: 0.42;        /* video brightness */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
+  body { font-family: "Chakra Petch", system-ui, sans-serif; }
+
+  /* ---------- background layers ---------- */
+  #stage { position: fixed; inset: 0; z-index: 0; }
+  #stage video, #fallback, #glitch {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+  #stage video {
+    object-fit: cover; opacity: 0; transition: opacity .15s linear;
+    filter: grayscale(.55) contrast(1.15) brightness(var(--dark));
+  }
+  #stage video.on { opacity: 1; }
+  #glitch { pointer-events: none; mix-blend-mode: screen; }
+
+  /* scanlines + vignette = the "dark filter" */
+  #shade {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, rgba(0,0,0,.15) 0%, rgba(0,0,0,.85) 75%, #000 100%);
+  }
+
+  /* glitch jolt applied to the whole video stage during transitions */
+  #stage.jolt { animation: jolt .45s steps(1) both; }
+  @keyframes jolt {
+    0%   { transform: translate(0,0);   filter: none; clip-path: inset(0 0 0 0); }
+    10%  { transform: translate(-14px,2px); filter: hue-rotate(90deg) saturate(3); clip-path: inset(12% 0 58% 0); }
+    20%  { transform: translate(18px,-3px); filter: invert(.15);  clip-path: inset(48% 0 22% 0); }
+    30%  { transform: translate(-6px,0);  filter: hue-rotate(-60deg); clip-path: inset(0 0 80% 0); }
+    40%  { transform: translate(10px,4px); filter: contrast(2);    clip-path: inset(70% 0 4% 0); }
+    55%  { transform: translate(-22px,0); filter: saturate(4);     clip-path: inset(30% 0 40% 0); }
+    70%  { transform: translate(4px,-2px); filter: hue-rotate(180deg); clip-path: inset(5% 0 5% 0); }
+    85%  { transform: translate(-3px,0);  filter: none;            clip-path: inset(0 0 0 0); }
+    100% { transform: none; filter: none; clip-path: none; }
+  }
+
+  /* ---------- foreground ---------- */
+  main {
+    position: relative; z-index: 2; height: 100%;
+    display: grid; place-items: center; padding: 16px;
+  }
+  .center { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+
+  .logo { width: min(72vw, 380px); height: auto; color: var(--fg); overflow: visible; }
+  .logo text { fill: currentColor; }
+  .logo .ring-text { font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 15.5px; letter-spacing: 4.2px; }
+  .logo .mark { font-family: "Michroma", sans-serif; font-size: 50px; letter-spacing: 6px; }
+  .logo .est { font-family: "Chakra Petch", sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 5px; fill: var(--dim) !important; }
+  .logo .accent { stroke: var(--accent); }
+  .logo .accent-fill { fill: var(--accent) !important; }
+
+  /* idle RGB split + glitch burst */
+  .logo { filter: drop-shadow(1px 0 0 rgba(255,42,85,.55)) drop-shadow(-1px 0 0 rgba(0,229,255,.55)); }
+  .logo.glitch { animation: logoGlitch .45s steps(1) both; }
+  @keyframes logoGlitch {
+    0%   { transform: none; }
+    15%  { transform: translate(-6px,0) skewX(-8deg); filter: drop-shadow(6px 0 0 var(--accent2)) drop-shadow(-6px 0 0 var(--accent)); clip-path: inset(0 0 55% 0); }
+    30%  { transform: translate(5px,1px); filter: drop-shadow(-4px 0 0 var(--accent2)) drop-shadow(4px 0 0 var(--accent)); clip-path: inset(40% 0 0 0); }
+    45%  { transform: translate(-2px,0) skewX(4deg); clip-path: inset(20% 0 30% 0); }
+    60%  { transform: translate(3px,0); filter: drop-shadow(3px 0 0 var(--accent2)) drop-shadow(-3px 0 0 var(--accent)); clip-path: none; }
+    100% { transform: none; }
+  }
+
+  .tag { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; color: var(--dim); }
+  .tag b { color: var(--fg); font-weight: 700; }
+  .soon {
+    font-size: 12px; letter-spacing: 8px; text-transform: uppercase;
+    color: var(--accent); padding-left: 8px;
+  }
+  .soon::after { content: "_"; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  footer {
+    position: fixed; z-index: 2; left: 0; right: 0; bottom: 18px;
+    display: flex; justify-content: center; gap: 22px; flex-wrap: wrap;
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim);
+  }
+  footer a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+  footer a:hover { color: var(--fg); border-color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) {
+    #stage.jolt, .logo.glitch { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="fallback"></canvas>
+  <video id="vA" muted playsinline preload="auto"></video>
+  <video id="vB" muted playsinline preload="auto"></video>
+  <canvas id="glitch"></canvas>
+</div>
+<div id="shade"></div>
+
+<main>
+  <div class="center">
+    <svg class="logo" id="logo" viewBox="0 0 400 400" role="img" aria-label="Boston Electronic Athletic Club">
+      <defs>
+        <path id="arcTop" d="M 60 200 A 140 140 0 0 1 340 200"/>
+        <path id="arcBot" d="M 42 200 A 158 158 0 0 0 358 200"/>
+      </defs>
+
+      <!-- rings -->
+      <circle cx="200" cy="200" r="174" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      <circle cx="200" cy="200" r="126" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="200" cy="200" r="181" fill="none" stroke="currentColor" stroke-width=".75" stroke-dasharray="2 6" opacity=".6"/>
+
+      <!-- crosshair ticks -->
+      <g stroke="currentColor" stroke-width="2.5">
+        <line x1="200" y1="10" x2="200" y2="26"/>
+        <line x1="200" y1="374" x2="200" y2="390"/>
+      </g>
+
+      <!-- ring text -->
+      <text class="ring-text"><textPath href="#arcTop" startOffset="50%" text-anchor="middle">BOSTON ELECTRONIC</textPath></text>
+      <text class="ring-text"><textPath href="#arcBot" startOffset="50%" text-anchor="middle">ATHLETIC CLUB</textPath></text>
+
+      <!-- side markers -->
+      <rect x="44" y="194" width="12" height="12" transform="rotate(45 50 200)" class="accent-fill"/>
+      <rect x="344" y="194" width="12" height="12" transform="rotate(45 350 200)" class="accent-fill"/>
+
+      <!-- center mark -->
+      <line x1="118" y1="158" x2="282" y2="158" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="118" y1="236" x2="282" y2="236" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="170" y1="158" x2="230" y2="158" class="accent" stroke-width="3"/>
+      <text class="mark" x="203" y="216" text-anchor="middle">BEAC</text>
+      <text class="est" x="202" y="262" text-anchor="middle">EST · 2026</text>
+    </svg>
+
+    <div class="tag"><b>Golden Tee</b> · Sim Racing · <b>CS2</b>· SSM2</div>
+    <div class="soon">Coming soon</div>
+  </div>
+</main>
+
+<footer>
+  <span>Boston, MA</span>
+  <a href="mailto:info@bostoneac.com">info@bostoneac.com</a>
+</footer>
+
+<script>
+/* ============================================================
+   CONFIG — drop MP4/WebM files in /clips and list them here.
+   Short (5–15s), muted, ~720p, < 5 MB each keeps Pages snappy.
+   ============================================================ */
+const CLIPS = [
+  // "clips/01.mp4",
+  // "clips/02.mp4",
+];
+const CLIP_SECONDS = 7;      // max time on each clip before cutting
+const FALLBACK_GLITCH = 6;   // seconds between glitches when no clips
+
+const stage = document.getElementById('stage');
+const logo  = document.getElementById('logo');
+const vids  = [document.getElementById('vA'), document.getElementById('vB')];
+const fb    = document.getElementById('fallback');
+const gc    = document.getElementById('glitch');
+const fctx  = fb.getContext('2d');
+const gctx  = gc.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function size() {
+  for (const c of [fb, gc]) { c.width = innerWidth; c.height = innerHeight; }
+}
+addEventListener('resize', size); size();
+
+/* ---------- fallback background: drifting grid + noise ---------- */
+let fbRunning = true;
+function drawFallback(t) {
+  if (!fbRunning) return;
+  const w = fb.width, h = fb.height;
+  fctx.fillStyle = '#000'; fctx.fillRect(0, 0, w, h);
+
+  // perspective-ish grid floor
+  fctx.strokeStyle = 'rgba(0,229,255,0.07)'; fctx.lineWidth = 1;
+  const horizon = h * 0.55, off = (t / 40) % 40;
+  for (let y = 0; y < h - horizon; y += 40) {
+    const yy = horizon + Math.pow((y + off) / (h - horizon), 2) * (h - horizon);
+    fctx.beginPath(); fctx.moveTo(0, yy); fctx.lineTo(w, yy); fctx.stroke();
+  }
+  for (let i = -20; i <= 20; i++) {
+    fctx.beginPath(); fctx.moveTo(w / 2 + i * 20, horizon); fctx.lineTo(w / 2 + i * 160, h); fctx.stroke();
+  }
+  // sparse static
+  const n = (w * h) / 900;
+  for (let i = 0; i < n; i++) {
+    const v = Math.random() * 60 | 0;
+    fctx.fillStyle = `rgba(${v},${v},${v},0.5)`;
+    fctx.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5);
+  }
+  requestAnimationFrame(drawFallback);
+}
+requestAnimationFrame(drawFallback);
+
+/* ---------- glitch burst on its own canvas ---------- */
+function glitchBurst(ms = 450) {
+  if (reduce) return;
+  stage.classList.remove('jolt'); void stage.offsetWidth; stage.classList.add('jolt');
+  logo.classList.remove('glitch'); void logo.offsetWidth; logo.classList.add('glitch');
+
+  const end = performance.now() + ms;
+  (function frame() {
+    const w = gc.width, h = gc.height;
+    gctx.clearRect(0, 0, w, h);
+    if (performance.now() > end) return;
+    // colored slice bars
+    for (let i = 0; i < 9; i++) {
+      const y = Math.random() * h, bh = Math.random() * 28 + 2;
+      gctx.fillStyle = Math.random() < .5 ? 'rgba(0,229,255,.18)' : 'rgba(255,42,85,.18)';
+      gctx.fillRect(Math.random() * -60, y, w + 120, bh);
+    }
+    // block noise
+    for (let i = 0; i < 40; i++) {
+      const v = Math.random() * 255 | 0;
+      gctx.fillStyle = `rgba(${v},${v},${v},.12)`;
+      gctx.fillRect(Math.random() * w, Math.random() * h, Math.random() * 120, Math.random() * 6 + 1);
+    }
+    requestAnimationFrame(frame);
+  })();
+}
+
+/* ---------- clip reel ---------- */
+let idx = 0, cur = 0, timer = null, good = CLIPS.slice();
+
+function load(v, src) {
+  return new Promise(res => {
+    const done = ok => { v.oncanplay = v.onerror = null; res(ok); };
+    v.oncanplay = () => done(true);
+    v.onerror = () => done(false);
+    v.src = src; v.load();
+  });
+}
+
+async function next() {
+  clearTimeout(timer);
+  if (!good.length) return startFallbackLoop();
+  idx = (idx + 1) % good.length;
+  const nv = vids[cur ^ 1], ov = vids[cur];
+  const ok = await load(nv, good[idx]);
+  if (!ok) { good.splice(idx, 1); idx--; return next(); }
+
+  glitchBurst();
+  setTimeout(() => {               // swap mid-glitch so the cut hides in the noise
+    nv.currentTime = 0; nv.play().catch(() => {});
+    nv.classList.add('on'); ov.classList.remove('on');
+    setTimeout(() => ov.pause(), 200);
+    cur ^= 1;
+    fbRunning = false;
+  }, 180);
+
+  timer = setTimeout(next, CLIP_SECONDS * 1000);
+  nv.onended = () => next();
+}
+
+function startFallbackLoop() {
+  vids.forEach(v => v.classList.remove('on'));
+  if (!fbRunning) { fbRunning = true; requestAnimationFrame(drawFallback); }
+  setInterval(() => glitchBurst(), FALLBACK_GLITCH * 1000);
+  setTimeout(glitchBurst, 900);
+}
+
+if (good.length) { idx = -1; next(); } else { startFallbackLoop(); }
+</script>
+</body>
+</html>
